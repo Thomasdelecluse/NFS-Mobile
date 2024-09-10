@@ -1,13 +1,41 @@
-// ProfileScreen.js
-import React from 'react';
-import { View, Text } from 'react-native';
+// MapScreen.js
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 
 const MapScreen = () => {
+    const [region, setRegion] = useState({
+        latitude: 48.8566,
+        longitude: 2.3522,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+    });
+
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor:'#12CBC4' }}>
-            <Text>Map Screen</Text>
+        <View style={styles.container}>
+            <MapView
+                style={styles.map}
+                region={region}
+                onRegionChangeComplete={setRegion}
+            >
+                {/* Exemple de point (marker) */}
+                <Marker
+                    coordinate={{ latitude: 48.8566, longitude: 2.3522 }}
+                    title="Paris"
+                    description="Capitale de la France"
+                />
+            </MapView>
         </View>
     );
 };
 
 export default MapScreen;
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    map: {
+        ...StyleSheet.absoluteFillObject,
+    },
+});
