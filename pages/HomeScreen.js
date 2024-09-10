@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         flexGrow: 1,
-        marginTop:100,
+        marginTop:70,
         alignItems: 'center',
         padding: 20,
     },
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: '400',
         color: 'white',
-        marginBottom: 20,
+        marginBottom: 100,
     },
     lineText: {
         fontSize: 24,
