@@ -1,13 +1,13 @@
 import React from 'react';
-import {ImageBackground, ScrollView, StyleSheet, Text} from 'react-native';
+import {Image, ImageBackground, ScrollView, StyleSheet, Text} from 'react-native';
 import backgroundImage from "../assets/bg2.png";
+import logo from "../assets/logo-with-text.png";
 
 const HomeScreen = () => {
     return (
         <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
             <ScrollView contentContainerStyle={styles.contentContainer}>
-                <Text style={styles.mainTitle}>FESIPOP</Text>
-                <Text style={styles.subtitle}>MUSIC FESTIVAL</Text>
+                <Image source={logo} style={styles.image} />
                 <Text style={styles.lineText}>BLACKPINK</Text>
                 <Text style={styles.lineTextSmall}>TWICE, BIG BANG</Text>
                 <Text style={styles.lineTextSmaller}>NCT, GOT7, RED VELVET, HALO</Text>
@@ -31,14 +31,14 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         flexGrow: 1,
-        marginTop:70,
+        marginTop:15,
         alignItems: 'center',
         padding: 20,
     },
-    mainTitle: {
-        fontSize: 60,
-        fontWeight: 'bold',
-        color: 'white',
+    image:{
+        height:200,
+        width:200,
+        marginBottom: 60,
     },
     subtitle: {
         fontSize: 24,
