@@ -1,30 +1,67 @@
 import React from 'react';
-import {View, Text, ImageBackground, StyleSheet} from 'react-native';
+import {ImageBackground, ScrollView, StyleSheet, Text} from 'react-native';
 import backgroundImage from "../assets/bg2.png";
 
 const HomeScreen = () => {
     return (
         <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
-            <View style={styles.container}>
-                <Text style={styles.text}>Home Screen</Text>
-            </View>
+            <ScrollView contentContainerStyle={styles.contentContainer}>
+                <Text style={styles.mainTitle}>FESIPOP</Text>
+                <Text style={styles.subtitle}>MUSIC FESTIVAL</Text>
+                <Text style={styles.lineText}>BOOBA, NEKFEU, SCH, PNL,</Text>
+                <Text style={styles.lineTextSmall}>SOPRANO, KAARIS, NINHO, JUL, LACRIM,</Text>
+                <Text style={styles.lineTextSmaller}>MHD, ORELSAN, GIMS, SOOLKING, KOBA LAD,</Text>
+                <Text style={styles.lineTextSmaller}>NISKA, GRADUR, ALONZO, ROHFF, SADEK,</Text>
+                <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK, RIM'K, NIRO, GEORGIO,</Text>
+                {/* Continue d'ajouter du texte si nécessaire */}
+            </ScrollView>
         </ImageBackground>
     );
 };
+
 const styles = StyleSheet.create({
     backgroundImage: {
         flex: 1,
         resizeMode: 'cover',
-    },
-    container: {
-        flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
     },
-    text: {
-        color: '#fff',
+    contentContainer: {
+        flexGrow: 1,
+        marginTop:100,
+        alignItems: 'center',
+        padding: 20,
+    },
+    mainTitle: {
+        fontSize: 60,
+        fontWeight: 'bold',
+        color: 'white',
+    },
+    subtitle: {
+        fontSize: 24,
+        fontWeight: '400',
+        color: 'white',
+        marginBottom: 20,
+    },
+    lineText: {
         fontSize: 24,
         fontWeight: 'bold',
+        color: 'white',
+    },
+    lineTextSmall: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: 'white',
+    },
+    lineTextSmaller: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white',
+    },
+    lineTextTiny: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: 'white',
     },
 });
+
 export default HomeScreen;
