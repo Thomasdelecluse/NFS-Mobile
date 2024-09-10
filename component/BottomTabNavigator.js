@@ -23,7 +23,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 const HeaderTitle = () => (
     <View style={styles.headerTitleContainer}>
         <Text style={styles.headerTitleText}>FESIPOP</Text>
-        <Text style={styles.headerSubtitleText}>music festival</Text>
+        <Text style={styles.headerSubtitleText}>Music Festival</Text>
     </View>
 );
 

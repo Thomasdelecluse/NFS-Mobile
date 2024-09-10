@@ -8,15 +8,15 @@ const HomeScreen = () => {
             <ScrollView contentContainerStyle={styles.contentContainer}>
                 <Text style={styles.mainTitle}>FESIPOP</Text>
                 <Text style={styles.subtitle}>MUSIC FESTIVAL</Text>
-                <Text style={styles.lineText}>BOOBA</Text>
-                <Text style={styles.lineTextSmall}>SOPRANO, KAARIS</Text>
-                <Text style={styles.lineTextSmaller}>MHD, ORELSAN, GIMS, NISKA</Text>
-                <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK</Text>
-                <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK,NISKA</Text>
-                <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK</Text>
-                <Text style={styles.lineTextSmaller}>MHD, ORELSAN, GIMS, NISKA</Text>
-                <Text style={styles.lineTextSmall}>SOPRANO, KAARIS</Text>
-                <Text style={styles.lineText}>BOOBA</Text>
+                <Text style={styles.lineText}>BLACKPINK</Text>
+                <Text style={styles.lineTextSmall}>TWICE, BIG BANG</Text>
+                <Text style={styles.lineTextSmaller}>NCT, GOT7, RED VELVET, HALO</Text>
+                <Text style={styles.lineTextTiny}>2AM, AOA, EPEX, EVOL, TWICE, NMIXX</Text>
+                <Text style={styles.lineTextTiny}>KARA, LABOUM, MADTOWN, NCT,HIGHLIGHT</Text>
+                <Text style={styles.lineTextTiny}>STAYC, TRCNG, TVXQ, SS501, NCTAPO</Text>
+                <Text style={styles.lineTextSmaller}>SHINEE, EPEX, ROCKET, NCT</Text>
+                <Text style={styles.lineTextSmall}>PARAN, HIGHLIGHT</Text>
+                <Text style={styles.lineText}>RAINBOW</Text>
                 {/* Continue d'ajouter du texte si nécessaire */}
             </ScrollView>
         </ImageBackground>
