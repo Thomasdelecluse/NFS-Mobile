@@ -8,11 +8,12 @@ const HomeScreen = () => {
             <ScrollView contentContainerStyle={styles.contentContainer}>
                 <Text style={styles.mainTitle}>FESIPOP</Text>
                 <Text style={styles.subtitle}>MUSIC FESTIVAL</Text>
-                <Text style={styles.lineText}>BOOBA, NEKFEU, SCH, PNL,</Text>
-                <Text style={styles.lineTextSmall}>SOPRANO, KAARIS, NINHO, JUL, LACRIM,</Text>
-                <Text style={styles.lineTextSmaller}>MHD, ORELSAN, GIMS, SOOLKING, KOBA LAD,</Text>
-                <Text style={styles.lineTextSmaller}>NISKA, GRADUR, ALONZO, ROHFF, SADEK,</Text>
-                <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK, RIM'K, NIRO, GEORGIO,</Text>
+                <Text style={styles.lineText}>BOOBA</Text>
+                <Text style={styles.lineTextSmall}>SOPRANO, KAARIS</Text>
+                <Text style={styles.lineTextSmaller}>MHD, ORELSAN, GIMS, NISKA</Text>
+                <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK</Text>
+                <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK,NISKA</Text>
+                <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK,NISKA ,NISKA</Text>
                 {/* Continue d'ajouter du texte si nécessaire */}
             </ScrollView>
         </ImageBackground>
