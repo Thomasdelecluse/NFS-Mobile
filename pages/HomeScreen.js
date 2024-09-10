@@ -13,7 +13,6 @@ const HomeScreen = () => {
                 <Text style={styles.lineTextSmaller}>MHD, ORELSAN, GIMS, NISKA</Text>
                 <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK</Text>
                 <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK,NISKA</Text>
-                <Text style={styles.lineTextTiny}>KERY JAMES, LOMEPAL, VLAD, PLK,NISKA ,NISKA</Text>
                 {/* Continue d'ajouter du texte si nécessaire */}
             </ScrollView>
         </ImageBackground>
