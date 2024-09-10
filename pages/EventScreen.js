@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     scrollViewContainer: {
         paddingVertical: 25,
         paddingHorizontal: 10,
-        paddingBottom: 100,
+        paddingBottom: 120,
     },
     headerText: {
         color: "white",
