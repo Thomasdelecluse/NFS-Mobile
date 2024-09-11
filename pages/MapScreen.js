@@ -6,6 +6,7 @@ import CustomMarker from "../component/CustomMarker";
 import PopupImage from "../assets/logo.png";
 import UserImagePin from "../assets/userPin.png";
 import LocationImagePin from "../assets/locationPin.png";
+import { getDataFromAPI } from '../dao/EventDAO'; // Importer la méthode DAO
 
 const MapScreen = () => {
     const [region, setRegion] = useState({
@@ -16,28 +17,43 @@ const MapScreen = () => {
     });
     const [userLocation, setUserLocation] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [selectedMarker, setSelectedMarker] = useState(null); // État pour gérer la sélection du marqueur
+    const [selectedMarker, setSelectedMarker] = useState(null);
+    const [markers, setMarkers] = useState([]); // État pour stocker les données des markers
 
     useEffect(() => {
-        const getLocation = async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status === 'granted') {
-                const location = await Location.getCurrentPositionAsync({
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 1000,
-                });
-                const { latitude, longitude } = location.coords;
-                setUserLocation({ latitude, longitude });
-                setRegion((prevRegion) => ({
-                    ...prevRegion,
-                    latitude,
-                    longitude,
-                }));
+        const fetchLocationAndData = async () => {
+            // Fonction pour récupérer la position de l'utilisateur
+            const getLocation = async () => {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status === 'granted') {
+                    const location = await Location.getCurrentPositionAsync({
+                        enableHighAccuracy: true,
+                        timeout: 20000,
+                        maximumAge: 1000,
+                    });
+                    const { latitude, longitude } = location.coords;
+                    setUserLocation({ latitude, longitude });
+                    setRegion((prevRegion) => ({
+                        ...prevRegion,
+                        latitude,
+                        longitude,
+                    }));
+                }
+            };
+
+            await getLocation();
+
+            try {
+                const data = await getDataFromAPI();
+                setMarkers(data);
+            } catch (error) {
+                console.error('Erreur lors de la récupération des markers:', error);
             }
-            setLoading(false);
+
+            setLoading(false); // Arrêter le chargement après récupération des données
         };
-        getLocation();
+
+        fetchLocationAndData();
     }, []);
 
     const handleMarkerPress = (markerData) => {
@@ -79,39 +95,26 @@ const MapScreen = () => {
                     />
                 )}
 
-                <CustomMarker
-                    coordinate={{
-                        latitude: 49.44709008859785,
-                        longitude: 1.1042816721797788,
-                    }}
-                    title="Exo"
-                    description="Kpop"
-                    pinImage={LocationImagePin}
-                    height={35}
-                    width={35}
-                    onPress={() => handleMarkerPress({
-                        title: "Exo",
-                        description: "Heures : 17h",
-                        image: PopupImage,
-                    })}
-                />
-
-                <CustomMarker
-                    coordinate={{
-                        latitude: 49.442804165962286,
-                        longitude: 1.0926350343166913,
-                    }}
-                    title="Poab"
-                    description="Kpop"
-                    pinImage={LocationImagePin}
-                    height={35}
-                    width={35}
-                    onPress={() => handleMarkerPress({
-                        title: "Poab",
-                        description: "Heures : 18h",
-                        image: PopupImage,
-                    })}
-                />
+                {/* Parcourir les markers récupérés depuis l'API */}
+                {markers.map((marker, index) => (
+                    <CustomMarker
+                        key={index}
+                        coordinate={{
+                            latitude: marker.latitude,
+                            longitude: marker.longitude,
+                        }}
+                        title={marker.title}
+                        description={marker.description}
+                        pinImage={LocationImagePin}
+                        height={35}
+                        width={35}
+                        onPress={() => handleMarkerPress({
+                            title: marker.title,
+                            description: marker.description,
+                            image: PopupImage, // Supposons que l'image est la même pour tous les markers
+                        })}
+                    />
+                ))}
             </MapView>
 
             {selectedMarker && (
@@ -123,7 +126,6 @@ const MapScreen = () => {
                 >
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
-                            {/* Image au-dessus du titre */}
                             {selectedMarker.image && (
                                 <Image source={selectedMarker.image} style={styles.modalImage} />
                             )}
