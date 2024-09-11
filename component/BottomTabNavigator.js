@@ -6,7 +6,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import MapScreen from '../pages/MapScreen';
 import EventScreen from '../pages/EventScreen';
 import HomeScreen from '../pages/HomeScreen';
-
+import logo from '../assets/logo.png';
 const Tab = createBottomTabNavigator();
 
 const CustomTabBarButton = ({ children, onPress }) => (
@@ -77,7 +77,7 @@ const BottomTabNavigator = () => {
 
                         tabBarIcon: ({ focused }) => (
                             <Image
-                                source={require('../assets/logo.png')}
+                                source={logo}
                                 resizeMode="contain"
                                 style={{
                                     width: 70,

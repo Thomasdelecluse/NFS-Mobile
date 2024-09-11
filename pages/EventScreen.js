@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, ImageBackground, StyleSheet, ScrollView } from 'react-native';
 import EventCard from "../component/EventCard";
-const backgroundImage = require('../assets/icon.png');
-const groupImage = require('../assets/eventimg.jpg');
+import backgroundImage from "../assets/icon.png";
+import groupImage from "../assets/eventimg.jpg";
 
 const EventScreen = () => {
     return (
@@ -13,7 +13,6 @@ const EventScreen = () => {
                     showsVerticalScrollIndicator={false}
                 >
                     <Text style={styles.headerText}>EVENEMENTS</Text>
-                    {/* Génère plusieurs cartes d'événements */}
                     {Array(7).fill(0).map((_, index) => (
                         <EventCard
                             key={index}
