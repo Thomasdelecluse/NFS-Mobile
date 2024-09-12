@@ -5,6 +5,8 @@ import * as Location from 'expo-location';
 import CustomMarker from "../component/CustomMarker";
 import UserImagePin from "../assets/userPin.png";
 import LocationImagePin from "../assets/locationPin.png";
+import eatPin from "../assets/eat.png";
+import GenrePin from "../assets/genre.png";
 import {getDataFromAPI} from '../dao/EventDAO';
 
 const MapScreen = () => {
@@ -43,13 +45,24 @@ const MapScreen = () => {
                 .then(_ => setLoading(false))
                 .catch(_ => setMarkers([]))
     }, []);
-
+    const getMarkerIcon = (type) => {
+        switch (type) {
+            case 'toilette':
+                return GenrePin;
+            case 'SONG':
+                return LocationImagePin;
+            case 'eat':
+                return eatPin;
+            default:
+                return LocationImagePin;
+        }
+    };
     const handleMarkerPress = (markerData) => {
         setSelectedMarker(markerData);
     };
 
     const closeModal = () => {
-        setSelectedMarker(null); // Fermer la modale
+        setSelectedMarker(null);
     };
 
     if (loading) {
@@ -83,7 +96,6 @@ const MapScreen = () => {
                     />
                 )}
 
-                {/* Parcourir les markers récupérés depuis l'API */}
                 {markers.map((marker, index) => (
                     <CustomMarker
                         key={index}
@@ -91,7 +103,7 @@ const MapScreen = () => {
                             latitude: marker.latitude,
                             longitude: marker.longitude,
                         }}
-                        pinImage={LocationImagePin}
+                        pinImage={getMarkerIcon(marker.type)}
                         height={35}
                         width={35}
                         onPress={() => handleMarkerPress({

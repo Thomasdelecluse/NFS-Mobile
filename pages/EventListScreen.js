@@ -21,7 +21,7 @@ const EventListScreen = ({ navigation }) => {
             setRefreshing(false);
         }
     };
-
+    const filteredEvents = events.filter(event => event.type === 'SONG');
     useEffect(() => {
         fetchEvents();
     }, []);
@@ -56,8 +56,8 @@ const EventListScreen = ({ navigation }) => {
                 >
                     <Text style={styles.headerText}>EVENEMENTS</Text>
 
-                    {events.length > 0 ? (
-                        events.map((event, index) => (
+                    {filteredEvents.length > 0 ? (
+                        filteredEvents.map((event, index) => (
                             <TouchableOpacity
                                 key={index}
                                 onPress={() => navigation.navigate('EventDetailScreen', { eventId: event.id })}
