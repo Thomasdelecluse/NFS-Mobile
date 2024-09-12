@@ -16,38 +16,106 @@ const MapScreen = () => {
     });
     const [userLocation, setUserLocation] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [selectedMarker, setSelectedMarker] = useState(null); // État pour gérer la sélection du marqueur
+    const [selectedMarker, setSelectedMarker] = useState(null);
+    const [markers, setMarkers] = useState([]);
+    const [originalMarkers, setOriginalMarkers] = useState([]); // Pour stocker les marqueurs d'origine
 
     useEffect(() => {
         const getLocation = async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
+            const {status} = await Location.requestForegroundPermissionsAsync();
             if (status === 'granted') {
                 const location = await Location.getCurrentPositionAsync({
                     enableHighAccuracy: true,
                     timeout: 20000,
                     maximumAge: 1000,
                 });
-                const { latitude, longitude } = location.coords;
-                setUserLocation({ latitude, longitude });
+                const {latitude, longitude} = location.coords;
+                setUserLocation({latitude, longitude});
                 setRegion((prevRegion) => ({
                     ...prevRegion,
                     latitude,
                     longitude,
                 }));
             }
-            setLoading(false);
         };
-        getLocation();
+
+        // Récupération de la position et des données API
+        Promise.all([getLocation(), getDataFromAPI().then(data => {
+            setOriginalMarkers(data);  // Stocke les marqueurs d'origine
+            setMarkers(data);          // Affiche les marqueurs sans clustering initialement
+        })])
+        .then(_ => setLoading(false))
+        .catch(_ => setMarkers([]));
     }, []);
 
+    // Fonction pour calculer la distance entre deux points géographiques
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+        const R = 6371; // Rayon de la Terre en km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 0.5 - Math.cos(dLat) / 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            (1 - Math.cos(dLon)) / 2;
+        return R * 2 * Math.asin(Math.sqrt(a));
+    };
+
+    // Fonction de clustering des marqueurs
+    const clusterMarkers = (markers, region) => {
+        const clusteredMarkers = [];
+        const zoomFactor = region.latitudeDelta;
+        const threshold = zoomFactor * 10;  // Ajustez selon vos besoins
+
+        const processed = new Set(); // Marqueurs déjà traités
+
+        markers.forEach((marker, index) => {
+            if (processed.has(index)) return;
+
+            let cluster = [marker];
+            processed.add(index);
+
+            markers.forEach((otherMarker, otherIndex) => {
+                if (index !== otherIndex && !processed.has(otherIndex)) {
+                    const distance = calculateDistance(
+                        marker.latitude,
+                        marker.longitude,
+                        otherMarker.latitude,
+                        otherMarker.longitude
+                    );
+                    if (distance < threshold) {
+                        cluster.push(otherMarker);
+                        processed.add(otherIndex);
+                    }
+                }
+            });
+
+            if (cluster.length > 1) {
+                const clusterLat = cluster.reduce((sum, m) => sum + m.latitude, 0) / cluster.length;
+                const clusterLon = cluster.reduce((sum, m) => sum + m.longitude, 0) / cluster.length;
+                clusteredMarkers.push({
+                    latitude: clusterLat,
+                    longitude: clusterLon,
+                    count: cluster.length,
+                    markers: cluster,
+                });
+            } else {
+                clusteredMarkers.push(marker);
+            }
+        });
+
+        return clusteredMarkers;
+    };
+
+    // Fonction appelée lors de la sélection d'un marqueur
     const handleMarkerPress = (markerData) => {
         setSelectedMarker(markerData); // Mettre à jour l'état avec les informations du marqueur sélectionné
     };
 
+    // Fermer la modale
     const closeModal = () => {
-        setSelectedMarker(null); // Fermer la modale
+        setSelectedMarker(null);
     };
 
+    // Si l'application charge encore les données
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -61,7 +129,11 @@ const MapScreen = () => {
             <MapView
                 style={styles.map}
                 initialRegion={region}
-                onRegionChangeComplete={setRegion}
+                onRegionChangeComplete={newRegion => {
+                    setRegion(newRegion);
+                    const clustered = clusterMarkers(originalMarkers, newRegion);  // Utilisez les marqueurs d'origine
+                    setMarkers(clustered); // Mettre à jour les marqueurs affichés
+                }}
             >
                 {userLocation && (
                     <CustomMarker
@@ -79,39 +151,44 @@ const MapScreen = () => {
                     />
                 )}
 
-                <CustomMarker
-                    coordinate={{
-                        latitude: 49.44709008859785,
-                        longitude: 1.1042816721797788,
-                    }}
-                    title="Exo"
-                    description="Kpop"
-                    pinImage={LocationImagePin}
-                    height={35}
-                    width={35}
-                    onPress={() => handleMarkerPress({
-                        title: "Exo",
-                        description: "Heures : 17h",
-                        image: PopupImage,
-                    })}
-                />
-
-                <CustomMarker
-                    coordinate={{
-                        latitude: 49.442804165962286,
-                        longitude: 1.0926350343166913,
-                    }}
-                    title="Poab"
-                    description="Kpop"
-                    pinImage={LocationImagePin}
-                    height={35}
-                    width={35}
-                    onPress={() => handleMarkerPress({
-                        title: "Poab",
-                        description: "Heures : 18h",
-                        image: PopupImage,
-                    })}
-                />
+                {markers.map((marker, index) => (
+                    marker.count ? (
+                        // Si c'est un cluster, afficher un marqueur avec le nombre de marqueurs dans le cluster
+                        <CustomMarker
+                            key={index}
+                            coordinate={{
+                                latitude: marker.latitude,
+                                longitude: marker.longitude,
+                            }}
+                            pinImage={LocationImagePin}
+                            height={35}
+                            width={35}
+                            title={`${marker.count} événements`}
+                            onPress={() => handleMarkerPress({
+                                title: `${marker.count} événements`,
+                                description: 'Zoom pour voir plus de détails',
+                                markers: marker.markers,
+                            })}
+                        />
+                    ) : (
+                        // Sinon afficher le marqueur individuel
+                        <CustomMarker
+                            key={index}
+                            coordinate={{
+                                latitude: marker.latitude,
+                                longitude: marker.longitude,
+                            }}
+                            pinImage={LocationImagePin}
+                            height={35}
+                            width={35}
+                            onPress={() => handleMarkerPress({
+                                title: marker.nom_evenement,
+                                description: marker.lieu,
+                                image: marker.photo,
+                            })}
+                        />
+                    )
+                ))}
             </MapView>
 
             {selectedMarker && (
@@ -123,12 +200,20 @@ const MapScreen = () => {
                 >
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
-                            {/* Image au-dessus du titre */}
-                            {selectedMarker.image && (
-                                <Image source={selectedMarker.image} style={styles.modalImage} />
+                            {selectedMarker.markers && selectedMarker.markers.length > 1 ? (
+                                <>
+                                    <Text style={styles.modalTitle}>{selectedMarker.title}</Text>
+                                    <Text style={styles.modalDescription}>Contient plusieurs événements. Zoomez pour en voir plus.</Text>
+                                </>
+                            ) : (
+                                <>
+                                    {selectedMarker.image && (
+                                        <Image source={{uri: selectedMarker.image}} style={styles.modalImage}/>
+                                    )}
+                                    <Text style={styles.modalTitle}>{selectedMarker.title}</Text>
+                                    <Text style={styles.modalDescription}>{selectedMarker.description}</Text>
+                                </>
                             )}
-                            <Text style={styles.modalTitle}>{selectedMarker.title}</Text>
-                            <Text style={styles.modalDescription}>{selectedMarker.description}</Text>
                             <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
                                 <Text style={styles.closeButtonText}>Fermer</Text>
                             </TouchableOpacity>
