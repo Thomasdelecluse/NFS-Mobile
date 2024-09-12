@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Image } from 'react-native';
-import {getDetailByEventId, getEventByIdFromAPI} from "../dao/EventDAO";
+import { View, Text, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { getDetailByEventId, getEventByIdFromAPI } from "../dao/EventDAO";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+
+// Stockage en mémoire pour les favoris
+const inMemoryStorage = {
+  favorites: new Set()
+};
 
 const EventDetailScreen = ({ route }) => {
     const { eventId } = route.params;
@@ -9,35 +14,41 @@ const EventDetailScreen = ({ route }) => {
     const [eventDetails, setEventDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isFavorite, setIsFavorite] = useState(false);
 
     useEffect(() => {
-        const fetchEvent = async () => {
+        const fetchEventAndDetails = async () => {
             try {
-                const eventData = await getEventByIdFromAPI(eventId);
+                const [eventData, eventDetailsData] = await Promise.all([
+                    getEventByIdFromAPI(eventId),
+                    getDetailByEventId(eventId)
+                ]);
                 setEvent(eventData);
-            } catch (err) {
-                console.error("Erreur lors de la récupération de l'événement :", err);
-                setError('Erreur lors de la récupération des détails de l\'événement.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const fetchEventDetails = async () => {
-            try {
-                const eventDetailsData = await getDetailByEventId(eventId);
                 setEventDetails(eventDetailsData);
+                checkIfFavorite(eventId);
             } catch (err) {
-                console.error("Erreur lors de la récupération de l'événement :", err);
+                console.error("Erreur lors de la récupération des données :", err);
                 setError('Erreur lors de la récupération des détails de l\'événement.');
             } finally {
                 setLoading(false);
             }
         };
-        fetchEvent();
-        fetchEventDetails();
 
+        fetchEventAndDetails();
     }, [eventId]);
+
+    const checkIfFavorite = (id) => {
+        setIsFavorite(inMemoryStorage.favorites.has(id));
+    };
+
+    const toggleFavorite = () => {
+        if (isFavorite) {
+            inMemoryStorage.favorites.delete(eventId);
+        } else {
+            inMemoryStorage.favorites.add(eventId);
+        }
+        setIsFavorite(!isFavorite);
+    };
 
     if (loading) {
         return (
@@ -62,10 +73,19 @@ const EventDetailScreen = ({ route }) => {
                 {event && eventDetails ? (
                     <>
                         <Image
-                            source={{ uri: 'https://cache.marieclaire.fr/data/photo/w1200_h630_ci/6h/mode-kpop.jpg' }} // Remplace par ton URL d'image
+                            source={{ uri: 'https://cache.marieclaire.fr/data/photo/w1200_h630_ci/6h/mode-kpop.jpg' }}
                             style={styles.image}
                         />
-                        <Text style={styles.title}>{event.artiste?.nom || ''}</Text>
+                        <View style={styles.titleContainer}>
+                            <Text style={styles.title}>{event.artiste?.nom || ''}</Text>
+                            <TouchableOpacity onPress={toggleFavorite}>
+                                <Ionicons
+                                    name={isFavorite ? "heart" : "heart-outline"}
+                                    size={24}
+                                    color={isFavorite ? "red" : "black"}
+                                />
+                            </TouchableOpacity>
+                        </View>
 
                         <View style={styles.infoContainer}>
                             <View style={styles.infoRow}>
@@ -86,9 +106,9 @@ const EventDetailScreen = ({ route }) => {
                 )}
             </View>
         </View>
-
     );
 };
+
 
 const styles = StyleSheet.create({
     infoContainer:{
