@@ -4,6 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { getDetailByEventId, getEventByIdFromAPI } from '../dao/EventDAO';
 import { scheduleNotification } from './NotificationManager';
 
+import spotifyLogo from '../assets/spotify.png';
+import deezerLogo from '../assets/deezer.png';
+
 const EventDetailScreen = ({ route }) => {
     const { eventId } = route.params;
     const [event, setEvent] = useState(null);
@@ -101,6 +104,16 @@ const EventDetailScreen = ({ route }) => {
                         </View>
                         <View style={styles.descriptionRow}>
                             <Text style={styles.descriptionText}>{eventDetails.description || 'Description non disponible'}</Text>
+                        </View>
+
+                        {/* Ajout des logos en bas de la carte */}
+                        <View style={styles.logoContainer}>
+                            <TouchableOpacity>
+                                <Image source={spotifyLogo} style={styles.logo} />
+                            </TouchableOpacity>
+                            <TouchableOpacity>
+                                <Image source={deezerLogo} style={styles.logo} />
+                            </TouchableOpacity>
                         </View>
                     </>
                 ) : (
@@ -207,6 +220,17 @@ const styles = StyleSheet.create({
         paddingTop: 70,
         alignItems: 'center',
         backgroundColor: '#14cbc4',
+    },
+    logoContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: 20,
+        marginBottom:10,
+        width: '100%',
+    },
+    logo: {
+        width: 50,
+        height: 50,
     },
 });
 
