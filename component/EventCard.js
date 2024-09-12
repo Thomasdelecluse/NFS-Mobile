@@ -6,7 +6,8 @@ const locationIcon = require('../assets/location.png');
 const EventCard = ({ city, groupName, imageSource }) => {
     return (
         <View style={styles.cardContainer}>
-            <Image source={imageSource} style={styles.image} />
+            {/* Utiliser une image distante avec une URL */}
+            <Image source={{ uri: imageSource }} style={styles.image} />
             <View style={styles.infoContainer}>
                 <Text style={styles.groupName}>{groupName}</Text>
                 <View style={styles.cityContainer}>
@@ -34,13 +35,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     cityContainer: {
-        flexDirection: 'row', // Permet d'aligner l'icône et le texte côte à côte
-        alignItems: 'center', // Centrer verticalement
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     locationImage: {
         width: 20,
         height: 20,
-        marginRight: 8, // Ajouter un espacement entre l'image et le texte
+        marginRight: 8,
     },
     cityText: {
         color: 'rgba(180,180,180,0.73)',

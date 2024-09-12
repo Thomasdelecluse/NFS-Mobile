@@ -3,7 +3,6 @@ import {View, StyleSheet, ActivityIndicator, Image, Modal, Text, TouchableOpacit
 import MapView from 'react-native-maps';
 import * as Location from 'expo-location';
 import CustomMarker from "../component/CustomMarker";
-import PopupImage from "../assets/logo.png";
 import UserImagePin from "../assets/userPin.png";
 import LocationImagePin from "../assets/locationPin.png";
 import {getDataFromAPI} from '../dao/EventDAO';
@@ -98,7 +97,7 @@ const MapScreen = () => {
                         onPress={() => handleMarkerPress({
                             title: marker.nom_evenement,
                             description: marker.lieu,
-                            image: PopupImage,
+                            image: marker.photo,
                         })}
                     />
                 ))}
@@ -114,7 +113,7 @@ const MapScreen = () => {
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
                             {selectedMarker.image && (
-                                <Image source={selectedMarker.image} style={styles.modalImage}/>
+                                <Image source={{ uri: selectedMarker.image }} style={styles.modalImage}/>
                             )}
                             <Text style={styles.modalTitle}>{selectedMarker.title}</Text>
                             <Text style={styles.modalDescription}>{selectedMarker.description}</Text>
@@ -166,9 +165,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     modalImage: {
-        width: 150,
-        height: 150,
-        marginBottom: 10,
+        width: 220,
+        height: 220,
+        marginBottom: 5,
         resizeMode: 'contain',
     },
     closeButton: {
