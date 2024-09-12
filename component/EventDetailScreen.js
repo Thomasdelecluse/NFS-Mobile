@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
-import { getDetailByEventId, getEventByIdFromAPI } from "../dao/EventDAO";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from '@expo/vector-icons';
+import { getDetailByEventId, getEventByIdFromAPI } from '../dao/EventDAO';
+import { scheduleNotification } from './NotificationManager';
 
 // Stockage en mémoire pour les favoris
 const inMemoryStorage = {
@@ -15,6 +16,7 @@ const EventDetailScreen = ({ route }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isFavorite, setIsFavorite] = useState(false);
+    const [notificationActive, setNotificationActive] = useState(false);
 
     useEffect(() => {
         const fetchEventAndDetails = async () => {
@@ -24,30 +26,39 @@ const EventDetailScreen = ({ route }) => {
                     getDetailByEventId(eventId)
                 ]);
                 setEvent(eventData);
-                setEventDetails(eventDetailsData);
-                checkIfFavorite(eventId);
             } catch (err) {
-                console.error("Erreur lors de la récupération des données :", err);
+                console.error('Erreur lors de la récupération de l\'événement :', err);
                 setError('Erreur lors de la récupération des détails de l\'événement.');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchEventAndDetails();
+        const fetchEventDetails = async () => {
+            try {
+                const eventDetailsData = await getDetailByEventId(eventId);
+                setEventDetails(eventDetailsData);
+                checkIfFavorite(eventId);
+            } catch (err) {
+                console.error('Erreur lors de la récupération des détails de l\'événement :', err);
+                setError('Erreur lors de la récupération des détails de l\'événement.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEvent();
+        fetchEventDetails();
     }, [eventId]);
 
-    const checkIfFavorite = (id) => {
-        setIsFavorite(inMemoryStorage.favorites.has(id));
-    };
-
-    const toggleFavorite = () => {
-        if (isFavorite) {
-            inMemoryStorage.favorites.delete(eventId);
-        } else {
-            inMemoryStorage.favorites.add(eventId);
+    // Fonction pour gérer le clic sur l'icône de notification
+    const toggleNotification = async () => {
+        if (eventDetails && eventDetails.heure) {
+            setNotificationActive(!notificationActive);
+            if (!notificationActive) {
+                await scheduleNotification(eventDetails.heure, event); // Planifier la notification
+            }
         }
-        setIsFavorite(!isFavorite);
     };
 
     if (loading) {
@@ -73,16 +84,17 @@ const EventDetailScreen = ({ route }) => {
                 {event && eventDetails ? (
                     <>
                         <Image
-                            source={{ uri: 'https://cache.marieclaire.fr/data/photo/w1200_h630_ci/6h/mode-kpop.jpg' }}
+                            source={{ uri: event.photo }}
                             style={styles.image}
                         />
-                        <View style={styles.titleContainer}>
+                        <View style={styles.titleRow}>
                             <Text style={styles.title}>{event.artiste?.nom || ''}</Text>
-                            <TouchableOpacity onPress={toggleFavorite}>
+                            <TouchableOpacity onPress={toggleNotification} style={styles.notificationButton}>
                                 <Ionicons
-                                    name={isFavorite ? "heart" : "heart-outline"}
-                                    size={24}
-                                    color={isFavorite ? "red" : "black"}
+                                    name={notificationActive ? 'notifications' : 'notifications-outline'}
+                                    size={28}
+                                    color={notificationActive ? 'yellow' : 'black'} // Changement de couleur si activé
+                                    style={styles.notificationIcon}
                                 />
                             </TouchableOpacity>
                         </View>
@@ -111,9 +123,9 @@ const EventDetailScreen = ({ route }) => {
 
 
 const styles = StyleSheet.create({
-    infoContainer:{
-        flexDirection:'row',
-        gap:7
+    infoContainer: {
+        flexDirection: 'row',
+        gap: 7,
     },
     loadingContainer: {
         flex: 1,
@@ -148,11 +160,25 @@ const styles = StyleSheet.create({
         height: 150,
         borderRadius: 10,
     },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        width: '100%',
+        marginVertical: 10,
+    },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginVertical: 10,
         color: '#000',
+    },
+    notificationButton: {
+        position: 'absolute',
+        right: 0,
+    },
+    notificationIcon: {
+        padding: 5,
     },
     infoRow: {
         flexDirection: 'row',
@@ -160,7 +186,7 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         backgroundColor: '#d0e9f2',
         padding: 5,
-        paddingRight:10,
+        paddingRight: 10,
         borderRadius: 5,
     },
     timeText: {
@@ -170,7 +196,7 @@ const styles = StyleSheet.create({
     },
     descriptionRow: {
         flexDirection: 'column',
-        alignItems: 'left',
+        alignItems: 'flex-start',
         marginTop: 10,
         backgroundColor: '#d0e9f2',
         padding: 5,
@@ -187,12 +213,12 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#000',
     },
-    mainContainer:{
-        flex:1,
-        paddingTop:70,
-        alignItems:"center",
-        backgroundColor:"#14cbc4",
-    }
+    mainContainer: {
+        flex: 1,
+        paddingTop: 70,
+        alignItems: 'center',
+        backgroundColor: '#14cbc4',
+    },
 });
 
 export default EventDetailScreen;
