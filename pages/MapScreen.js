@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Image, Modal, Text, TouchableOpacity } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, StyleSheet, ActivityIndicator, Image, Modal, Text, TouchableOpacity} from 'react-native';
 import MapView from 'react-native-maps';
 import * as Location from 'expo-location';
 import CustomMarker from "../component/CustomMarker";
-import PopupImage from "../assets/logo.png";
 import UserImagePin from "../assets/userPin.png";
 import LocationImagePin from "../assets/locationPin.png";
+import {getDataFromAPI} from '../dao/EventDAO';
 
 const MapScreen = () => {
     const [region, setRegion] = useState({
@@ -16,32 +16,36 @@ const MapScreen = () => {
     });
     const [userLocation, setUserLocation] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [selectedMarker, setSelectedMarker] = useState(null); // État pour gérer la sélection du marqueur
+    const [selectedMarker, setSelectedMarker] = useState(null);
+    const [markers, setMarkers] = useState([]);
 
     useEffect(() => {
-        const getLocation = async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status === 'granted') {
-                const location = await Location.getCurrentPositionAsync({
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 1000,
-                });
-                const { latitude, longitude } = location.coords;
-                setUserLocation({ latitude, longitude });
-                setRegion((prevRegion) => ({
-                    ...prevRegion,
-                    latitude,
-                    longitude,
-                }));
-            }
-            setLoading(false);
-        };
-        getLocation();
+            const getLocation = async () => {
+                const {status} = await Location.requestForegroundPermissionsAsync();
+                if (status === 'granted') {
+                    const location = await Location.getCurrentPositionAsync({
+                        enableHighAccuracy: true,
+                        timeout: 20000,
+                        maximumAge: 1000,
+                    });
+                    const {latitude, longitude} = location.coords;
+                    setUserLocation({latitude, longitude});
+                    setRegion((prevRegion) => ({
+                        ...prevRegion,
+                        latitude,
+                        longitude,
+                    }));
+                }
+            };
+
+            Promise
+                .all([getLocation(), getDataFromAPI().then(setMarkers)])
+                .then(_ => setLoading(false))
+                .catch(_ => setMarkers([]))
     }, []);
 
     const handleMarkerPress = (markerData) => {
-        setSelectedMarker(markerData); // Mettre à jour l'état avec les informations du marqueur sélectionné
+        setSelectedMarker(markerData);
     };
 
     const closeModal = () => {
@@ -51,7 +55,7 @@ const MapScreen = () => {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff" />
+                <ActivityIndicator size="large" color="#0000ff"/>
             </View>
         );
     }
@@ -79,39 +83,24 @@ const MapScreen = () => {
                     />
                 )}
 
-                <CustomMarker
-                    coordinate={{
-                        latitude: 49.44709008859785,
-                        longitude: 1.1042816721797788,
-                    }}
-                    title="Exo"
-                    description="Kpop"
-                    pinImage={LocationImagePin}
-                    height={35}
-                    width={35}
-                    onPress={() => handleMarkerPress({
-                        title: "Exo",
-                        description: "Heures : 17h",
-                        image: PopupImage,
-                    })}
-                />
-
-                <CustomMarker
-                    coordinate={{
-                        latitude: 49.442804165962286,
-                        longitude: 1.0926350343166913,
-                    }}
-                    title="Poab"
-                    description="Kpop"
-                    pinImage={LocationImagePin}
-                    height={35}
-                    width={35}
-                    onPress={() => handleMarkerPress({
-                        title: "Poab",
-                        description: "Heures : 18h",
-                        image: PopupImage,
-                    })}
-                />
+                {/* Parcourir les markers récupérés depuis l'API */}
+                {markers.map((marker, index) => (
+                    <CustomMarker
+                        key={index}
+                        coordinate={{
+                            latitude: marker.latitude,
+                            longitude: marker.longitude,
+                        }}
+                        pinImage={LocationImagePin}
+                        height={35}
+                        width={35}
+                        onPress={() => handleMarkerPress({
+                            title: marker.nom_evenement,
+                            description: marker.lieu,
+                            image: marker.photo,
+                        })}
+                    />
+                ))}
             </MapView>
 
             {selectedMarker && (
@@ -123,9 +112,8 @@ const MapScreen = () => {
                 >
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
-                            {/* Image au-dessus du titre */}
                             {selectedMarker.image && (
-                                <Image source={selectedMarker.image} style={styles.modalImage} />
+                                <Image source={{ uri: selectedMarker.image }} style={styles.modalImage}/>
                             )}
                             <Text style={styles.modalTitle}>{selectedMarker.title}</Text>
                             <Text style={styles.modalDescription}>{selectedMarker.description}</Text>
@@ -177,9 +165,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     modalImage: {
-        width: 150,
-        height: 150,
-        marginBottom: 10,
+        width: 220,
+        height: 220,
+        marginBottom: 5,
         resizeMode: 'contain',
     },
     closeButton: {
