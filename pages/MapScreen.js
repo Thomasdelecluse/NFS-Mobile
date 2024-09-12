@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Image, Modal, Text, TouchableOpacity } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, StyleSheet, ActivityIndicator, Image, Modal, Text, TouchableOpacity} from 'react-native';
 import MapView from 'react-native-maps';
 import * as Location from 'expo-location';
 import CustomMarker from "../component/CustomMarker";
-import PopupImage from "../assets/logo.png";
 import UserImagePin from "../assets/userPin.png";
 import LocationImagePin from "../assets/locationPin.png";
+import {getDataFromAPI} from '../dao/EventDAO';
 
 const MapScreen = () => {
     const [region, setRegion] = useState({
@@ -107,7 +107,7 @@ const MapScreen = () => {
 
     // Fonction appelée lors de la sélection d'un marqueur
     const handleMarkerPress = (markerData) => {
-        setSelectedMarker(markerData); // Mettre à jour l'état avec les informations du marqueur sélectionné
+        setSelectedMarker(markerData);
     };
 
     // Fermer la modale
@@ -119,7 +119,7 @@ const MapScreen = () => {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff" />
+                <ActivityIndicator size="large" color="#0000ff"/>
             </View>
         );
     }
@@ -262,9 +262,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     modalImage: {
-        width: 150,
-        height: 150,
-        marginBottom: 10,
+        width: 220,
+        height: 220,
+        marginBottom: 5,
         resizeMode: 'contain',
     },
     closeButton: {
