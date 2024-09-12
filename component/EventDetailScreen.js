@@ -59,32 +59,44 @@ const EventDetailScreen = ({ route }) => {
     }
 
     return (
-        <View style={styles.cardContainer}>
-            {event && eventDetails ? (
-                <>
-                    <Image
-                        source={{ uri: 'https://cache.marieclaire.fr/data/photo/w1200_h630_ci/6h/mode-kpop.jpg' }} // Remplace par ton URL d'image
-                        style={styles.image}
-                    />
-                    <Text style={styles.title}>{event.artiste?.nom || 'Artiste non disponible'}</Text>
+        <View style={styles.mainContainer}>
+            <View style={styles.cardContainer}>
+                {event && eventDetails ? (
+                    <>
+                        <Image
+                            source={{ uri: 'https://cache.marieclaire.fr/data/photo/w1200_h630_ci/6h/mode-kpop.jpg' }} // Remplace par ton URL d'image
+                            style={styles.image}
+                        />
+                        <Text style={styles.title}>{event.artiste?.nom || ''}</Text>
 
-                    <View style={styles.infoRow}>
-                        <Ionicons name="time-outline" size={24} color="black" />
-                        <Text style={styles.timeText}>{event.lieu || 'Heure non disponible'}</Text>
-                    </View>
-
-                    <View style={styles.descriptionRow}>
-                        <Text style={styles.descriptionText}>{eventDetails.description || 'Description non disponible'}</Text>
-                    </View>
-                </>
-            ) : (
-                <Text style={styles.noEventsText}>Aucun événement trouvé</Text>
-            )}
+                        <View style={styles.infoContainer}>
+                            <View style={styles.infoRow}>
+                                <Ionicons name="map-outline" size={24} color="black" />
+                                <Text style={styles.timeText}>{event.lieu || ''}</Text>
+                            </View>
+                            <View style={styles.infoRow}>
+                                <Ionicons name="time-outline" size={24} color="black" />
+                                <Text style={styles.timeText}>{event.heure || ''}</Text>
+                            </View>
+                        </View>
+                        <View style={styles.descriptionRow}>
+                            <Text style={styles.descriptionText}>{eventDetails.description || 'Description non disponible'}</Text>
+                        </View>
+                    </>
+                ) : (
+                    <Text style={styles.noEventsText}>Aucun événement trouvé</Text>
+                )}
+            </View>
         </View>
+
     );
 };
 
 const styles = StyleSheet.create({
+    infoContainer:{
+        flexDirection:'row',
+        gap:7
+    },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -101,7 +113,7 @@ const styles = StyleSheet.create({
         color: 'red',
     },
     cardContainer: {
-        backgroundColor: '#b3e5e8', // Bleu clair pour la carte
+        backgroundColor: '#b3e5e8',
         borderRadius: 10,
         padding: 10,
         margin: 20,
@@ -128,7 +140,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginVertical: 5,
-        backgroundColor: '#d0e9f2', // Légère différence de couleur pour le fond
+        backgroundColor: '#d0e9f2',
         padding: 5,
         borderRadius: 5,
     },
@@ -141,7 +153,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'left',
         marginTop: 10,
-        backgroundColor: '#d0e9f2', // Même couleur que pour l'heure
+        backgroundColor: '#d0e9f2',
         padding: 5,
         borderRadius: 5,
         width: '100%',
@@ -156,6 +168,12 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#000',
     },
+    mainContainer:{
+        flex:1,
+        paddingTop:70,
+        alignItems:"center",
+        backgroundColor:"#14cbc4",
+    }
 });
 
 export default EventDetailScreen;
