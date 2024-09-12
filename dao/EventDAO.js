@@ -1,7 +1,10 @@
 import axios from 'axios';
 
 const url = "https://fesipopapi.onrender.com/"
+
 export const getDataFromAPI = () => axios.get(`${url}/evenements`).then(res => res.data);
+
+export const getEventsFromAPI = (params) => axios.get(`${url}/evenements/search${params}`).then(res => res.data);
 
 export const getEventByIdFromAPI = (id) => {
     return axios.get(`${url}/evenements/${id}`)

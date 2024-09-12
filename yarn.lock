@@ -1862,6 +1862,12 @@
     prompts "^2.4.2"
     semver "^7.5.2"
 
+"@react-native-community/datetimepicker@github:react-native-community/datetimepicker":
+  version "8.2.0"
+  resolved "git+ssh://git@github.com/react-native-community/datetimepicker.git#aef382a71df344d3847fe60ca8795bcdbd952b8e"
+  dependencies:
+    invariant "^2.2.4"
+
 "@react-native/assets-registry@0.74.87":
   version "0.74.87"
   resolved "https://registry.npmjs.org/@react-native/assets-registry/-/assets-registry-0.74.87.tgz"
@@ -3607,7 +3613,7 @@ expo-status-bar@~1.12.1:
   resolved "https://registry.npmjs.org/expo-status-bar/-/expo-status-bar-1.12.1.tgz"
   integrity sha512-/t3xdbS8KB0prj5KG5w7z+wZPFlPtkgs95BsmrP/E7Q0xHXTcDcQ6Cu2FkFuRM+PKTb17cJDnLkawyS5vDLxMA==
 
-expo@*, expo@~51.0.28:
+expo@*, expo@>=50.0.0, expo@~51.0.28:
   version "51.0.32"
   resolved "https://registry.npmjs.org/expo/-/expo-51.0.32.tgz"
   integrity sha512-6GEhYvHRnyS/6BytQagGkClsaqbuwAtlN3A6oDfnNMRKLmz6NE/r+Rjg9zbQgUO6zigqb60Yj5lAX32DmixRDw==
