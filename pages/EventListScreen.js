@@ -13,7 +13,6 @@ const EventListScreen = ({ navigation }) => {
         try {
             const data = await getDataFromAPI();
             setEvents(data);
-            console.log(data);
         } catch (error) {
             console.error('Erreur lors de la récupération des événements:', error);
         } finally {
