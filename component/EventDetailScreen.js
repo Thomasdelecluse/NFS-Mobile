@@ -19,7 +19,7 @@ const EventDetailScreen = ({ route }) => {
     const [notificationActive, setNotificationActive] = useState(false);
 
     useEffect(() => {
-        const fetchEventAndDetails = async () => {
+        const fetchEvent = async () => {
             try {
                 const [eventData, eventDetailsData] = await Promise.all([
                     getEventByIdFromAPI(eventId),
@@ -50,6 +50,19 @@ const EventDetailScreen = ({ route }) => {
         fetchEvent();
         fetchEventDetails();
     }, [eventId]);
+
+    const checkIfFavorite = (id) => {
+        setIsFavorite(inMemoryStorage.favorites.has(id));
+    };
+
+    const toggleFavorite = () => {
+        if (isFavorite) {
+            inMemoryStorage.favorites.delete(eventId);
+        } else {
+            inMemoryStorage.favorites.add(eventId);
+        }
+        setIsFavorite(!isFavorite);
+    };
 
     // Fonction pour gérer le clic sur l'icône de notification
     const toggleNotification = async () => {
@@ -89,6 +102,13 @@ const EventDetailScreen = ({ route }) => {
                         />
                         <View style={styles.titleRow}>
                             <Text style={styles.title}>{event.artiste?.nom || ''}</Text>
+                            <TouchableOpacity onPress={toggleFavorite} style={styles.favButton}>
+                                <Ionicons
+                                    name={isFavorite ? "heart" : "heart-outline"}
+                                    size={24}
+                                    color={isFavorite ? "red" : "black"}
+                                />
+                            </TouchableOpacity>
                             <TouchableOpacity onPress={toggleNotification} style={styles.notificationButton}>
                                 <Ionicons
                                     name={notificationActive ? 'notifications' : 'notifications-outline'}
@@ -179,6 +199,10 @@ const styles = StyleSheet.create({
     },
     notificationIcon: {
         padding: 5,
+    },
+    favButton: {
+        position: 'absolute',
+        right: 40,
     },
     infoRow: {
         flexDirection: 'row',
