@@ -41,10 +41,9 @@ const MapScreen = () => {
             }
         };
 
-        // Récupération de la position et des données API
         Promise.all([getLocation(), getDataFromAPI().then(data => {
-            setOriginalMarkers(data);  // Stocke les marqueurs d'origine
-            setMarkers(data);          // Affiche les marqueurs sans clustering initialement
+            setOriginalMarkers(data);
+            setMarkers(data);
         })])
         .then(_ => setLoading(false))
         .catch(_ => setMarkers([]));
@@ -62,7 +61,7 @@ const MapScreen = () => {
         }
     };
 
-    // Fonction pour calculer la distance entre deux points géographiques
+
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
         const R = 6371; // Rayon de la Terre en km
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -73,7 +72,6 @@ const MapScreen = () => {
         return R * 2 * Math.asin(Math.sqrt(a));
     };
 
-    // Fonction de clustering des marqueurs
     const clusterMarkers = (markers, region) => {
         const clusteredMarkers = [];
         const zoomFactor = region.latitudeDelta;
@@ -119,7 +117,6 @@ const MapScreen = () => {
         return clusteredMarkers;
     };
 
-    // Fonction appelée lors de la sélection d'un marqueur
     const handleMarkerPress = (markerData) => {
         setSelectedMarker(markerData);
     };
@@ -143,8 +140,8 @@ const MapScreen = () => {
                 initialRegion={region}
                 onRegionChangeComplete={newRegion => {
                     setRegion(newRegion);
-                    const clustered = clusterMarkers(originalMarkers, newRegion);  // Utilisez les marqueurs d'origine
-                    setMarkers(clustered); // Mettre à jour les marqueurs affichés
+                    const clustered = clusterMarkers(originalMarkers, newRegion);
+                    setMarkers(clustered);
                 }}
             >
                 {userLocation && (
@@ -163,17 +160,15 @@ const MapScreen = () => {
                     />
                 )}
 
-                {/* Parcourir les markers récupérés depuis l'API */}
                 {markers.map((marker, index) => (
                     marker.count ? (
-                        // Si c'est un cluster, afficher un marqueur avec le nombre de marqueurs dans le cluster
                         <CustomMarker
                             key={index}
                             coordinate={{
                                 latitude: marker.latitude,
                                 longitude: marker.longitude,
                             }}
-                            pinImage={LocationImagePin}
+                            pinImage={getMarkerIcon(marker.type)}
                             height={35}
                             width={35}
                             title={`${marker.count} événements`}
@@ -184,14 +179,13 @@ const MapScreen = () => {
                             })}
                         />
                     ) : (
-                        // Sinon afficher le marqueur individuel
                         <CustomMarker
                             key={index}
                             coordinate={{
                                 latitude: marker.latitude,
                                 longitude: marker.longitude,
                             }}
-                            pinImage={LocationImagePin}
+                            pinImage={getMarkerIcon(marker.type)}
                             height={35}
                             width={35}
                             onPress={() => handleMarkerPress({

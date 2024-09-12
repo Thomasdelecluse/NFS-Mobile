@@ -6,7 +6,6 @@ const locationIcon = require('../assets/location.png');
 const EventCard = ({ city, groupName, imageSource }) => {
     return (
         <View style={styles.cardContainer}>
-            {/* Utiliser une image distante avec une URL */}
             <Image source={{ uri: imageSource }} style={styles.image} />
             <View style={styles.infoContainer}>
                 <Text style={styles.groupName}>{groupName}</Text>
