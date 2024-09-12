@@ -14,7 +14,6 @@ const EventDetailScreen = ({ route }) => {
         const fetchEvent = async () => {
             try {
                 const eventData = await getEventByIdFromAPI(eventId);
-                console.log("Event Data:", eventData);
                 setEvent(eventData);
             } catch (err) {
                 console.error("Erreur lors de la récupération de l'événement :", err);
@@ -27,7 +26,6 @@ const EventDetailScreen = ({ route }) => {
         const fetchEventDetails = async () => {
             try {
                 const eventDetailsData = await getDetailByEventId(eventId);
-                console.log("dadadadad","EventDetails Data:", eventDetailsData);
                 setEventDetails(eventDetailsData);
             } catch (err) {
                 console.error("Erreur lors de la récupération de l'événement :", err);
