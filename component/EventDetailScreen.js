@@ -27,7 +27,7 @@ const EventDetailScreen = ({ route }) => {
         const fetchEventDetails = async () => {
             try {
                 const eventDetailsData = await getDetailByEventId(eventId);
-                console.log("EventDetails Data:", eventDetailsData);
+                console.log("dadadadad","EventDetails Data:", eventDetailsData);
                 setEventDetails(eventDetailsData);
             } catch (err) {
                 console.error("Erreur lors de la récupération de l'événement :", err);
@@ -76,7 +76,7 @@ const EventDetailScreen = ({ route }) => {
                             </View>
                             <View style={styles.infoRow}>
                                 <Ionicons name="time-outline" size={24} color="black" />
-                                <Text style={styles.timeText}>{event.heure || ''}</Text>
+                                <Text style={styles.timeText}>{eventDetails.heure || ''}</Text>
                             </View>
                         </View>
                         <View style={styles.descriptionRow}>
@@ -142,6 +142,7 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         backgroundColor: '#d0e9f2',
         padding: 5,
+        paddingRight:10,
         borderRadius: 5,
     },
     timeText: {
