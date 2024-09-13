@@ -9,10 +9,10 @@ const ChatBot = ({ userLocation, markers }) => {
     initialMessages: [{
       id: '1',
       role: 'assistant',
-      content: "Hello, I am Katsuka from Fesi'Pop. I am here to help you with any questions you may have. Please let me know how I can assist you.",
+      content: "Bonjour, je suis Katsuka de Fesi'Pop. Je suis ici pour vous aider avec toutes les questions que vous pourriez avoir. Veuillez me faire savoir comment je peux vous assister.",
     }],
     body: {
-      context: `User location: lat ${userLocation.latitude}, lon ${userLocation.longitude}. There are ${markers.length} points of interest on the map.`,
+      context: `Localisation de l'utilisateur : lat ${userLocation.latitude}, lon ${userLocation.longitude}. Il y a ${markers.length} points d'intérêt sur la carte.`,
       latitude: userLocation.latitude,
       longitude: userLocation.longitude,
     },
