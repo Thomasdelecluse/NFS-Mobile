@@ -168,9 +168,9 @@ const MapScreen = () => {
         <View style={styles.container}>
                 <TouchableOpacity onPress={toggleFavorites} style={styles.heartButton}>
                     {showFavoritesOnly ? 
-                     <Heart size={20} color="#1B1464" />
-                     : 
                      <Heart size={20} color="red" fill="red" />
+                     : 
+                     <Heart size={20} color="#1B1464" />
                      }
                 </TouchableOpacity>
 
