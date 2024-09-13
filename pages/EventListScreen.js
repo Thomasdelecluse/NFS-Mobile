@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     searchButton: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#B3EAF1',
         padding: 10,
         borderRadius: 5,
         alignItems: 'center',
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     clearButton: {
-        backgroundColor: '#f44336',
+        backgroundColor: '#73A6A6',
         padding: 10,
         borderRadius: 5,
         alignItems: 'center',
