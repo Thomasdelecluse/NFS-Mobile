@@ -9,8 +9,8 @@ import eatPin from "../assets/eat.png";
 import GenrePin from "../assets/genre.png";
 import ChatBot from './ChatBot';
 import { getDataFromAPI, getDetailByEventId } from '../dao/EventDAO';
-import { Ionicons } from '@expo/vector-icons';
 import inMemoryStorage from '../component/inMemoryStorage'; // For favorite marker management
+import { MessageCircle, Heart } from 'lucide-react-native';
 
 const MapScreen = () => {
     const [region, setRegion] = useState({
@@ -166,15 +166,9 @@ const MapScreen = () => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.topContainer}>
-                <TouchableOpacity onPress={toggleFavorites} style={styles.iconButton}>
-                    <Ionicons
-                        name={showFavoritesOnly ? "heart" : "heart-outline"}
-                        size={24}
-                        color={showFavoritesOnly ? "red" : "black"}
-                    />
+                <TouchableOpacity onPress={toggleFavorites} style={styles.heartButton}>
+                     <Heart size={20} color="#1B1464" />
                 </TouchableOpacity>
-            </View>
 
             <MapView
                 style={styles.map}
@@ -237,7 +231,7 @@ const MapScreen = () => {
             </MapView>
 
             <TouchableOpacity style={styles.chatButton} onPress={toggleChat}>
-                <Text style={styles.chatButtonText}>Chat</Text>
+                <MessageCircle size={20} color="#fff" />
             </TouchableOpacity>
 
             <Modal
@@ -386,6 +380,15 @@ const styles = StyleSheet.create({
         right: 20,
         zIndex: 1,
         backgroundColor: '#1B1464',
+        padding: 10,
+        borderRadius: 25,
+    },
+    heartButton: {
+        position: 'absolute',
+        top: 20,
+        left: 20,
+        zIndex: 1,
+        backgroundColor: '#fff',
         padding: 10,
         borderRadius: 25,
     },
