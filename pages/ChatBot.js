@@ -1,15 +1,18 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, Platform, ActivityIndicator, KeyboardAvoidingView } from 'react-native';
 import { useChat } from 'react-native-vercel-ai';
+import * as Speech from 'expo-speech';
+import { Volume1, Volume2 } from 'lucide-react-native';
 
 const ChatBot = ({ userLocation, markers }) => {
   const flatListRef = useRef(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: 'http://172.16.2.194:3000/api/chat',
     initialMessages: [{
       id: '1',
       role: 'assistant',
-      content: "Hello, I am Katsuka from Fesi'Pop. I am here to help you with any questions you may have. Please let me know how I can assist you.",
+      content: "Bonjour, je suis Katsuka de Fesi'Pop. Je suis ici pour vous aider à répondre à vos questions. N'hésitez pas à me demander comment je peux vous aider.",
     }],
     body: {
       context: `User location: lat ${userLocation.latitude}, lon ${userLocation.longitude}. There are ${markers.length} points of interest on the map.`,
@@ -24,11 +27,32 @@ const ChatBot = ({ userLocation, markers }) => {
     }
   }, [messages]);
 
+  const speakMessage = async (message) => {
+    const isSpeakingNow = await Speech.isSpeakingAsync();
+    if (isSpeakingNow) {
+      Speech.stop();
+      setIsSpeaking(false);
+    } else {
+      setIsSpeaking(true);
+      Speech.speak(message, {
+        language: 'fr',
+        onDone: () => setIsSpeaking(false),
+        onError: () => setIsSpeaking(false),
+        voice: Platform.OS === 'ios' ? 'com.apple.ttsbundle.Amelie-compact' : undefined,
+      });
+    }
+  };
+
   const renderMessage = ({ item }) => (
     <View style={[styles.messageBubble, item.role === 'user' ? styles.userBubble : styles.botBubble]}>
       <Text style={styles.messageText}>
         {item.content}
       </Text>
+      {item.role === 'assistant' && (
+        <TouchableOpacity onPress={() => speakMessage(item.content)} style={styles.speakButton}>
+          {isSpeaking ? <Volume2 size={24} color="#1B1464" /> : <Volume1 size={24} color="#1B1464" />}
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -61,9 +85,7 @@ const ChatBot = ({ userLocation, markers }) => {
         <TextInput
           style={styles.input}
           value={input}
-          onChangeText={(text) => {
-            handleInputChange(Platform.OS === 'web' ? { target: { value: text } } : text);
-          }}
+          onChangeText={handleInputChange}
           placeholder="Ask about locations or directions..."
         />
         <TouchableOpacity style={styles.sendButton} onPress={onSend}>
@@ -88,6 +110,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     borderRadius: 10,
     maxWidth: '80%',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   userBubble: {
     alignSelf: 'flex-end',
@@ -99,6 +123,7 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: 16,
+    flex: 1,
   },
   loadingContainer: {
     padding: 10,
@@ -126,6 +151,9 @@ const styles = StyleSheet.create({
     color: '#1B1464',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  speakButton: {
+    marginLeft: 10,
   },
 });
 
