@@ -7,7 +7,6 @@ import UserImagePin from "../assets/userPin.png";
 import LocationImagePin from "../assets/locationPin.png";
 import eatPin from "../assets/eat.png";
 import GenrePin from "../assets/genre.png";
-import {getDataFromAPI} from '../dao/EventDAO';
 import ChatBot from './ChatBot';
 import { getDataFromAPI, getDetailByEventId } from '../dao/EventDAO';
 
