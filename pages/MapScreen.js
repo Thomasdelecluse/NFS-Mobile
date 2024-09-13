@@ -7,6 +7,7 @@ import UserImagePin from "../assets/userPin.png";
 import LocationImagePin from "../assets/locationPin.png";
 import eatPin from "../assets/eat.png";
 import GenrePin from "../assets/genre.png";
+import ChatBot from './ChatBot';
 import { getDataFromAPI, getDetailByEventId } from '../dao/EventDAO';
 import { Ionicons } from '@expo/vector-icons';
 import inMemoryStorage from '../component/inMemoryStorage'; // For favorite marker management
@@ -21,6 +22,8 @@ const MapScreen = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedMarker, setSelectedMarker] = useState(null);
+    const [markers, setMarkers] = useState([]);
+    const [isChatVisible, setIsChatVisible] = useState(false);
     const [originalMarkers, setOriginalMarkers] = useState([]);
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [additionalDetails, setAdditionalDetails] = useState(null);
@@ -149,6 +152,10 @@ const MapScreen = () => {
             : filteredMarkers;
     }, [showFavoritesOnly, originalMarkers, region, clusterMarkers]);
 
+    const toggleChat = () => {
+        setIsChatVisible(!isChatVisible);
+    };
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -228,6 +235,24 @@ const MapScreen = () => {
                     )
                 ))}
             </MapView>
+
+            <TouchableOpacity style={styles.chatButton} onPress={toggleChat}>
+                <Text style={styles.chatButtonText}>Chat</Text>
+            </TouchableOpacity>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={isChatVisible}
+                onRequestClose={() => setIsChatVisible(false)}
+            >
+                <View style={styles.chatContainer}>
+                    <ChatBot userLocation={userLocation} markers={markers} />
+                    <TouchableOpacity style={styles.closeChatButton} onPress={() => setIsChatVisible(false)}>
+                        <Text style={styles.closeChatButtonText}>Close Chat</Text>
+                    </TouchableOpacity>
+                </View>
+            </Modal>
 
             {selectedMarker && (
                 <Modal
@@ -352,6 +377,33 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
     closeButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    chatButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        zIndex: 1,
+        backgroundColor: '#1B1464',
+        padding: 10,
+        borderRadius: 25,
+    },
+    chatButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    chatContainer: {
+        flex: 1,
+        backgroundColor: 'white',
+        marginTop: 50,
+    },
+    closeChatButton: {
+        backgroundColor: '#1B1464',
+        padding: 10,
+        alignItems: 'center',
+    },
+    closeChatButtonText: {
         color: 'white',
         fontSize: 16,
     },
