@@ -5,11 +5,7 @@ import { getDetailByEventId, getEventByIdFromAPI } from '../dao/EventDAO';
 import { scheduleNotification } from './NotificationManager';
 import spotifyLogo from '../assets/spotify.png';
 import deezerLogo from '../assets/deezer.png';
-
-// Stockage en mémoire pour les favoris
-const inMemoryStorage = {
-  favorites: new Set()
-};
+import inMemoryStorage from './inMemoryStorage';
 
 
 const EventDetailScreen = ({ route }) => {

@@ -1,13 +1,15 @@
-import React, {useEffect, useState} from 'react';
-import {View, StyleSheet, ActivityIndicator, Image, Modal, Text, TouchableOpacity} from 'react-native';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { View, StyleSheet, ActivityIndicator, Image, Modal, Text, TouchableOpacity } from 'react-native';
 import MapView from 'react-native-maps';
 import * as Location from 'expo-location';
 import CustomMarker from "../component/CustomMarker";
+import { Ionicons } from '@expo/vector-icons';  // Import Ionicons
 import UserImagePin from "../assets/userPin.png";
 import LocationImagePin from "../assets/locationPin.png";
 import eatPin from "../assets/eat.png";
 import GenrePin from "../assets/genre.png";
-import {getDataFromAPI} from '../dao/EventDAO';
+import { getDataFromAPI } from '../dao/EventDAO';
+import inMemoryStorage from '../component/inMemoryStorage';
 
 const MapScreen = () => {
     const [region, setRegion] = useState({
@@ -19,65 +21,59 @@ const MapScreen = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedMarker, setSelectedMarker] = useState(null);
-    const [markers, setMarkers] = useState([]);
-    const [originalMarkers, setOriginalMarkers] = useState([]); // Pour stocker les marqueurs d'origine
+    const [originalMarkers, setOriginalMarkers] = useState([]);
+    const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
     useEffect(() => {
-        const getLocation = async () => {
-            const {status} = await Location.requestForegroundPermissionsAsync();
-            if (status === 'granted') {
-                const location = await Location.getCurrentPositionAsync({
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 1000,
-                });
-                const {latitude, longitude} = location.coords;
-                setUserLocation({latitude, longitude});
-                setRegion((prevRegion) => ({
-                    ...prevRegion,
-                    latitude,
-                    longitude,
-                }));
+        const initialize = async () => {
+            try {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status === 'granted') {
+                    const location = await Location.getCurrentPositionAsync({
+                        enableHighAccuracy: true,
+                        timeout: 20000,
+                        maximumAge: 1000,
+                    });
+                    const { latitude, longitude } = location.coords;
+                    setUserLocation({ latitude, longitude });
+                    setRegion(prev => ({ ...prev, latitude, longitude }));
+                }
+
+                const data = await getDataFromAPI();
+                setOriginalMarkers(data);
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
-        Promise.all([getLocation(), getDataFromAPI().then(data => {
-            setOriginalMarkers(data);
-            setMarkers(data);
-        })])
-        .then(_ => setLoading(false))
-        .catch(_ => setMarkers([]));
+        initialize();
     }, []);
-    const getMarkerIcon = (type) => {
+
+    const getMarkerIcon = useCallback((type) => {
         switch (type) {
-            case 'toilette':
-                return GenrePin;
-            case 'SONG':
-                return LocationImagePin;
-            case 'eat':
-                return eatPin;
-            default:
-                return LocationImagePin;
+            case 'toilette': return GenrePin;
+            case 'SONG': return LocationImagePin;
+            case 'eat': return eatPin;
+            default: return LocationImagePin;
         }
-    };
+    }, []);
 
-
-    const calculateDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371; // Rayon de la Terre en km
+    const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
+        const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
         const a = 0.5 - Math.cos(dLat) / 2 +
             Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
             (1 - Math.cos(dLon)) / 2;
         return R * 2 * Math.asin(Math.sqrt(a));
-    };
+    }, []);
 
-    const clusterMarkers = (markers, region) => {
+    const clusterMarkers = useCallback((markers, region) => {
         const clusteredMarkers = [];
-        const zoomFactor = region.latitudeDelta;
-        const threshold = zoomFactor * 10;  // Ajustez selon vos besoins
-
-        const processed = new Set(); // Marqueurs déjà traités
+        const threshold = region.latitudeDelta * 10;
+        const processed = new Set();
 
         markers.forEach((marker, index) => {
             if (processed.has(index)) return;
@@ -88,10 +84,8 @@ const MapScreen = () => {
             markers.forEach((otherMarker, otherIndex) => {
                 if (index !== otherIndex && !processed.has(otherIndex)) {
                     const distance = calculateDistance(
-                        marker.latitude,
-                        marker.longitude,
-                        otherMarker.latitude,
-                        otherMarker.longitude
+                        marker.latitude, marker.longitude,
+                        otherMarker.latitude, otherMarker.longitude
                     );
                     if (distance < threshold) {
                         cluster.push(otherMarker);
@@ -115,34 +109,54 @@ const MapScreen = () => {
         });
 
         return clusteredMarkers;
-    };
+    }, [calculateDistance]);
 
-    const handleMarkerPress = (markerData) => {
+    const displayedMarkers = useMemo(() => {
+        let filteredMarkers = showFavoritesOnly
+            ? originalMarkers.filter(marker => inMemoryStorage.favorites.has(marker.id))
+            : originalMarkers;
+
+        return region.latitudeDelta > 0.1
+            ? clusterMarkers(filteredMarkers, region)
+            : filteredMarkers;
+    }, [showFavoritesOnly, originalMarkers, region, clusterMarkers]);
+
+    const handleMarkerPress = useCallback((markerData) => {
         setSelectedMarker(markerData);
-    };
+    }, []);
 
-    const closeModal = () => {
+    const closeModal = useCallback(() => {
         setSelectedMarker(null);
-    };
+    }, []);
+
+    const toggleFavorites = useCallback(() => {
+        setShowFavoritesOnly(prevState => !prevState);
+    }, []);
 
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff"/>
+                <ActivityIndicator size="large" color="#0000ff" />
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
+            <View style={styles.topContainer}>
+                <TouchableOpacity onPress={toggleFavorites} style={styles.iconButton}>
+                    <Ionicons
+                        name={showFavoritesOnly ? "heart" : "heart-outline"}
+                        size={24}
+                        color={showFavoritesOnly ? "red" : "black"}
+                    />
+                </TouchableOpacity>
+            </View>
+
             <MapView
                 style={styles.map}
-                initialRegion={region}
-                onRegionChangeComplete={newRegion => {
-                    setRegion(newRegion);
-                    const clustered = clusterMarkers(originalMarkers, newRegion);
-                    setMarkers(clustered);
-                }}
+                region={region}
+                onRegionChangeComplete={setRegion}
             >
                 {userLocation && (
                     <CustomMarker
@@ -160,10 +174,10 @@ const MapScreen = () => {
                     />
                 )}
 
-                {markers.map((marker, index) => (
+                {displayedMarkers.map((marker, index) => (
                     marker.count ? (
                         <CustomMarker
-                            key={index}
+                            key={`cluster-${index}`}
                             coordinate={{
                                 latitude: marker.latitude,
                                 longitude: marker.longitude,
@@ -180,7 +194,7 @@ const MapScreen = () => {
                         />
                     ) : (
                         <CustomMarker
-                            key={index}
+                            key={`marker-${marker.id}`}
                             coordinate={{
                                 latitude: marker.latitude,
                                 longitude: marker.longitude,
@@ -198,41 +212,37 @@ const MapScreen = () => {
                 ))}
             </MapView>
 
-            {selectedMarker && (
-                <Modal
-                    transparent={true}
-                    animationType="slide"
-                    visible={!!selectedMarker}
-                    onRequestClose={closeModal}
-                >
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            {selectedMarker.markers && selectedMarker.markers.length > 1 ? (
-                                <>
-                                    <Text style={styles.modalTitle}>{selectedMarker.title}</Text>
-                                    <Text style={styles.modalDescription}>Contient plusieurs événements. Zoomez pour en voir plus.</Text>
-                                </>
-                            ) : (
-                                <>
-                                    {selectedMarker.image && (
-                                        <Image source={{uri: selectedMarker.image}} style={styles.modalImage}/>
-                                    )}
-                                    <Text style={styles.modalTitle}>{selectedMarker.title}</Text>
-                                    <Text style={styles.modalDescription}>{selectedMarker.description}</Text>
-                                </>
-                            )}
-                            <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                                <Text style={styles.closeButtonText}>Fermer</Text>
-                            </TouchableOpacity>
-                        </View>
+            <Modal
+                transparent={true}
+                animationType="slide"
+                visible={!!selectedMarker}
+                onRequestClose={closeModal}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        {selectedMarker?.markers ? (
+                            <>
+                                <Text style={styles.modalTitle}>{selectedMarker.title}</Text>
+                                <Text style={styles.modalDescription}>Contient plusieurs événements. Zoomez pour en voir plus.</Text>
+                            </>
+                        ) : (
+                            <>
+                                {selectedMarker?.image && (
+                                    <Image source={{ uri: selectedMarker.image }} style={styles.modalImage} />
+                                )}
+                                <Text style={styles.modalTitle}>{selectedMarker?.title}</Text>
+                                <Text style={styles.modalDescription}>{selectedMarker?.description}</Text>
+                            </>
+                        )}
+                        <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                            <Text style={styles.closeButtonText}>Fermer</Text>
+                        </TouchableOpacity>
                     </View>
-                </Modal>
-            )}
+                </View>
+            </Modal>
         </View>
     );
 };
-
-export default MapScreen;
 
 const styles = StyleSheet.create({
     container: {
@@ -246,6 +256,27 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    topContainer: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        left: 10,
+        width: '14%',
+        flexDirection: 'row',
+        justifyContent: 'flex-end', // Changed to move content to the right
+        alignItems: 'center',
+        backgroundColor: 'white',
+        padding: 10,
+        borderRadius: 5,
+        zIndex: 1,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    iconButton: {
+        padding: 5,
+    },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -254,7 +285,7 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         width: 300,
-        padding: 10,
+        padding: 20,
         backgroundColor: 'white',
         borderRadius: 10,
         alignItems: 'center',
@@ -267,11 +298,12 @@ const styles = StyleSheet.create({
     modalDescription: {
         fontSize: 16,
         marginBottom: 20,
+        textAlign: 'center',
     },
     modalImage: {
         width: 220,
         height: 220,
-        marginBottom: 5,
+        marginBottom: 10,
         resizeMode: 'contain',
     },
     closeButton: {
@@ -284,3 +316,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
 });
+
+export default MapScreen;
