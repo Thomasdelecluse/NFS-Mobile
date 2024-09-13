@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Image } from 'react-native';
-import {getDetailByEventId, getEventByIdFromAPI} from "../dao/EventDAO";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { View, Text, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { getDetailByEventId, getEventByIdFromAPI } from '../dao/EventDAO';
+import { scheduleNotification } from './NotificationManager';
+import spotifyLogo from '../assets/spotify.png';
+import deezerLogo from '../assets/deezer.png';
+import inMemoryStorage from './inMemoryStorage';
+
 
 const EventDetailScreen = ({ route }) => {
     const { eventId } = route.params;
@@ -9,14 +14,19 @@ const EventDetailScreen = ({ route }) => {
     const [eventDetails, setEventDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [notificationActive, setNotificationActive] = useState(false);
 
     useEffect(() => {
         const fetchEvent = async () => {
             try {
-                const eventData = await getEventByIdFromAPI(eventId);
+                const [eventData, eventDetailsData] = await Promise.all([
+                    getEventByIdFromAPI(eventId),
+                    getDetailByEventId(eventId)
+                ]);
                 setEvent(eventData);
             } catch (err) {
-                console.error("Erreur lors de la récupération de l'événement :", err);
+                console.error('Erreur lors de la récupération de l\'événement :', err);
                 setError('Erreur lors de la récupération des détails de l\'événement.');
             } finally {
                 setLoading(false);
@@ -27,17 +37,41 @@ const EventDetailScreen = ({ route }) => {
             try {
                 const eventDetailsData = await getDetailByEventId(eventId);
                 setEventDetails(eventDetailsData);
+                checkIfFavorite(eventId);
             } catch (err) {
-                console.error("Erreur lors de la récupération de l'événement :", err);
+                console.error('Erreur lors de la récupération des détails de l\'événement :', err);
                 setError('Erreur lors de la récupération des détails de l\'événement.');
             } finally {
                 setLoading(false);
             }
         };
+
         fetchEvent();
         fetchEventDetails();
-
     }, [eventId]);
+
+    const checkIfFavorite = (id) => {
+        setIsFavorite(inMemoryStorage.favorites.has(id));
+    };
+
+    const toggleFavorite = () => {
+        if (isFavorite) {
+            inMemoryStorage.favorites.delete(eventId);
+        } else {
+            inMemoryStorage.favorites.add(eventId);
+        }
+        setIsFavorite(!isFavorite);
+    };
+
+    // Fonction pour gérer le clic sur l'icône de notification
+    const toggleNotification = async () => {
+        if (eventDetails && eventDetails.heure) {
+            setNotificationActive(!notificationActive);
+            if (!notificationActive) {
+                await scheduleNotification(eventDetails.heure, event); // Planifier la notification
+            }
+        }
+    };
 
     if (loading) {
         return (
@@ -62,10 +96,27 @@ const EventDetailScreen = ({ route }) => {
                 {event && eventDetails ? (
                     <>
                         <Image
-                            source={{ uri: 'https://cache.marieclaire.fr/data/photo/w1200_h630_ci/6h/mode-kpop.jpg' }} // Remplace par ton URL d'image
+                            source={{ uri: event.photo }}
                             style={styles.image}
                         />
-                        <Text style={styles.title}>{event.artiste?.nom || ''}</Text>
+                        <View style={styles.titleRow}>
+                            <Text style={styles.title}>{event.artiste?.nom || ''}</Text>
+                            <TouchableOpacity onPress={toggleFavorite} style={styles.favButton}>
+                                <Ionicons
+                                    name={isFavorite ? "heart" : "heart-outline"}
+                                    size={24}
+                                    color={isFavorite ? "red" : "black"}
+                                />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={toggleNotification} style={styles.notificationButton}>
+                                <Ionicons
+                                    name={notificationActive ? 'notifications' : 'notifications-outline'}
+                                    size={28}
+                                    color={notificationActive ? 'yellow' : 'black'} // Changement de couleur si activé
+                                    style={styles.notificationIcon}
+                                />
+                            </TouchableOpacity>
+                        </View>
 
                         <View style={styles.infoContainer}>
                             <View style={styles.infoRow}>
@@ -80,20 +131,30 @@ const EventDetailScreen = ({ route }) => {
                         <View style={styles.descriptionRow}>
                             <Text style={styles.descriptionText}>{eventDetails.description || 'Description non disponible'}</Text>
                         </View>
+
+                        {/* Ajout des logos en bas de la carte */}
+                        <View style={styles.logoContainer}>
+                            <TouchableOpacity>
+                                <Image source={spotifyLogo} style={styles.logo} />
+                            </TouchableOpacity>
+                            <TouchableOpacity>
+                                <Image source={deezerLogo} style={styles.logo} />
+                            </TouchableOpacity>
+                        </View>
                     </>
                 ) : (
                     <Text style={styles.noEventsText}>Aucun événement trouvé</Text>
                 )}
             </View>
         </View>
-
     );
 };
 
+
 const styles = StyleSheet.create({
-    infoContainer:{
-        flexDirection:'row',
-        gap:7
+    infoContainer: {
+        flexDirection: 'row',
+        gap: 7,
     },
     loadingContainer: {
         flex: 1,
@@ -128,11 +189,29 @@ const styles = StyleSheet.create({
         height: 150,
         borderRadius: 10,
     },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        width: '100%',
+        marginVertical: 10,
+    },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginVertical: 10,
         color: '#000',
+    },
+    notificationButton: {
+        position: 'absolute',
+        right: 0,
+    },
+    notificationIcon: {
+        padding: 5,
+    },
+    favButton: {
+        position: 'absolute',
+        right: 40,
     },
     infoRow: {
         flexDirection: 'row',
@@ -140,7 +219,7 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         backgroundColor: '#d0e9f2',
         padding: 5,
-        paddingRight:10,
+        paddingRight: 10,
         borderRadius: 5,
     },
     timeText: {
@@ -150,7 +229,7 @@ const styles = StyleSheet.create({
     },
     descriptionRow: {
         flexDirection: 'column',
-        alignItems: 'left',
+        alignItems: 'flex-start',
         marginTop: 10,
         backgroundColor: '#d0e9f2',
         padding: 5,
@@ -167,12 +246,23 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#000',
     },
-    mainContainer:{
-        flex:1,
-        paddingTop:70,
-        alignItems:"center",
-        backgroundColor:"#14cbc4",
-    }
+    mainContainer: {
+        flex: 1,
+        paddingTop: 70,
+        alignItems: 'center',
+        backgroundColor: '#14cbc4',
+    },
+    logoContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: 20,
+        marginBottom:10,
+        width: '100%',
+    },
+    logo: {
+        width: 50,
+        height: 50,
+    },
 });
 
 export default EventDetailScreen;
