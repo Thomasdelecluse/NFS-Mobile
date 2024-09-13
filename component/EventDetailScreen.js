@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, ActivityIndicator, Image, TouchableOpacity } fr
 import { Ionicons } from '@expo/vector-icons';
 import { getDetailByEventId, getEventByIdFromAPI } from '../dao/EventDAO';
 import { scheduleNotification } from './NotificationManager';
-
 import spotifyLogo from '../assets/spotify.png';
 import deezerLogo from '../assets/deezer.png';
+import inMemoryStorage from './inMemoryStorage';
+
 
 const EventDetailScreen = ({ route }) => {
     const { eventId } = route.params;
@@ -13,12 +14,16 @@ const EventDetailScreen = ({ route }) => {
     const [eventDetails, setEventDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isFavorite, setIsFavorite] = useState(false);
     const [notificationActive, setNotificationActive] = useState(false);
 
     useEffect(() => {
         const fetchEvent = async () => {
             try {
-                const eventData = await getEventByIdFromAPI(eventId);
+                const [eventData, eventDetailsData] = await Promise.all([
+                    getEventByIdFromAPI(eventId),
+                    getDetailByEventId(eventId)
+                ]);
                 setEvent(eventData);
             } catch (err) {
                 console.error('Erreur lors de la récupération de l\'événement :', err);
@@ -32,6 +37,7 @@ const EventDetailScreen = ({ route }) => {
             try {
                 const eventDetailsData = await getDetailByEventId(eventId);
                 setEventDetails(eventDetailsData);
+                checkIfFavorite(eventId);
             } catch (err) {
                 console.error('Erreur lors de la récupération des détails de l\'événement :', err);
                 setError('Erreur lors de la récupération des détails de l\'événement.');
@@ -43,6 +49,19 @@ const EventDetailScreen = ({ route }) => {
         fetchEvent();
         fetchEventDetails();
     }, [eventId]);
+
+    const checkIfFavorite = (id) => {
+        setIsFavorite(inMemoryStorage.favorites.has(id));
+    };
+
+    const toggleFavorite = () => {
+        if (isFavorite) {
+            inMemoryStorage.favorites.delete(eventId);
+        } else {
+            inMemoryStorage.favorites.add(eventId);
+        }
+        setIsFavorite(!isFavorite);
+    };
 
     // Fonction pour gérer le clic sur l'icône de notification
     const toggleNotification = async () => {
@@ -82,6 +101,13 @@ const EventDetailScreen = ({ route }) => {
                         />
                         <View style={styles.titleRow}>
                             <Text style={styles.title}>{event.artiste?.nom || ''}</Text>
+                            <TouchableOpacity onPress={toggleFavorite} style={styles.favButton}>
+                                <Ionicons
+                                    name={isFavorite ? "heart" : "heart-outline"}
+                                    size={24}
+                                    color={isFavorite ? "red" : "black"}
+                                />
+                            </TouchableOpacity>
                             <TouchableOpacity onPress={toggleNotification} style={styles.notificationButton}>
                                 <Ionicons
                                     name={notificationActive ? 'notifications' : 'notifications-outline'}
@@ -123,6 +149,7 @@ const EventDetailScreen = ({ route }) => {
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     infoContainer: {
@@ -181,6 +208,10 @@ const styles = StyleSheet.create({
     },
     notificationIcon: {
         padding: 5,
+    },
+    favButton: {
+        position: 'absolute',
+        right: 40,
     },
     infoRow: {
         flexDirection: 'row',
