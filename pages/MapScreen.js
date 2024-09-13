@@ -249,7 +249,7 @@ const MapScreen = () => {
                 <View style={styles.chatContainer}>
                     <ChatBot userLocation={userLocation} markers={markers} />
                     <TouchableOpacity style={styles.closeChatButton} onPress={() => setIsChatVisible(false)}>
-                        <Text style={styles.closeChatButtonText}>Close Chat</Text>
+                        <Text style={styles.closeChatButtonText}>Fermer le chat</Text>
                     </TouchableOpacity>
                 </View>
             </Modal>

@@ -64,10 +64,10 @@ const ChatBot = ({ userLocation, markers }) => {
           onChangeText={(text) => {
             handleInputChange(Platform.OS === 'web' ? { target: { value: text } } : text);
           }}
-          placeholder="Ask about locations or directions..."
+          placeholder="Demander quelque chose..."
         />
         <TouchableOpacity style={styles.sendButton} onPress={onSend}>
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Text style={styles.sendButtonText}>Envoyer</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
