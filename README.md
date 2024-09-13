@@ -20,6 +20,18 @@ Pour lancer l'application sur votre machine locale, suivez ces étapes :
 git clone https://github.com/votre-utilisateur/festival-app.git
 cd festival-app
 ```
+
+### 2. Installez les dépendances
+Assurez-vous d'avoir Node.js et Expo CLI installés. Ensuite, installez les dépendances du projet :
+```bash
+npm install
+```
+
+### 3. Lancer l'app
+Démarrez l'application Expo avec la commande suivante :
+```bash
+expo start
+```
 ## 🛠️ Technologies utilisées
 
 - **React Native** : Pour créer une application mobile performante et multi-plateformes.

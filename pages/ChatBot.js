@@ -15,7 +15,7 @@ const ChatBot = ({ userLocation, markers }) => {
       content: "Bonjour, je suis Katsuka de Fesi'Pop. Je suis ici pour vous aider à répondre à vos questions. N'hésitez pas à me demander comment je peux vous aider.",
     }],
     body: {
-      context: `User location: lat ${userLocation.latitude}, lon ${userLocation.longitude}. There are ${markers.length} points of interest on the map.`,
+      context: `Localisation de l'utilisateur : lat ${userLocation.latitude}, lon ${userLocation.longitude}. Il y a ${markers.length} points d'intérêt sur la carte.`,
       latitude: userLocation.latitude,
       longitude: userLocation.longitude,
     },
@@ -86,10 +86,10 @@ const ChatBot = ({ userLocation, markers }) => {
           style={styles.input}
           value={input}
           onChangeText={handleInputChange}
-          placeholder="Ask about locations or directions..."
+          placeholder="Demander quelque chose..."
         />
         <TouchableOpacity style={styles.sendButton} onPress={onSend}>
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Text style={styles.sendButtonText}>Envoyer</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

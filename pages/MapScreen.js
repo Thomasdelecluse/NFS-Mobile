@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, ActivityIndicator, Image, Modal, Text, TouchableOpacity } from 'react-native';
 import MapView from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -9,6 +9,8 @@ import eatPin from "../assets/eat.png";
 import GenrePin from "../assets/genre.png";
 import ChatBot from './ChatBot';
 import { getDataFromAPI, getDetailByEventId } from '../dao/EventDAO';
+import inMemoryStorage from '../component/inMemoryStorage'; // For favorite marker management
+import { MessageCircle, Heart } from 'lucide-react-native';
 
 const MapScreen = () => {
     const [region, setRegion] = useState({
@@ -23,9 +25,11 @@ const MapScreen = () => {
     const [markers, setMarkers] = useState([]);
     const [isChatVisible, setIsChatVisible] = useState(false);
     const [originalMarkers, setOriginalMarkers] = useState([]);
+    const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [additionalDetails, setAdditionalDetails] = useState(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
 
+    // Fetch data and initialize location
     useEffect(() => {
         const getLocation = async () => {
             const { status } = await Location.requestForegroundPermissionsAsync();
@@ -45,31 +49,27 @@ const MapScreen = () => {
             }
         };
 
+        // Fetch markers and set both original and filtered markers
         Promise.all([getLocation(), getDataFromAPI().then(data => {
             setOriginalMarkers(data);
-            setMarkers(data);
         })])
-            .then(_ => setLoading(false))
-            .catch(_ => setMarkers([]));
+            .then(() => setLoading(false))
+            .catch(() => setOriginalMarkers([]));
     }, []);
 
     const getMarkerIcon = (type) => {
         switch (type) {
-            case 'toilette':
-                return GenrePin;
-            case 'SONG':
-                return LocationImagePin;
-            case 'eat':
-                return eatPin;
-            default:
-                return LocationImagePin;
+            case 'toilette': return GenrePin;
+            case 'SONG': return LocationImagePin;
+            case 'eat': return eatPin;
+            default: return LocationImagePin;
         }
     };
 
+    // Handle marker press to show additional details
     const handleMarkerPress = async (markerData) => {
         setLoadingDetails(true);
         setSelectedMarker(markerData);
-
         try {
             const details = await getDetailByEventId(markerData.id);
             setAdditionalDetails(details);
@@ -85,6 +85,73 @@ const MapScreen = () => {
         setAdditionalDetails(null);
     };
 
+    // Toggle showing favorite markers only
+    const toggleFavorites = () => {
+        setShowFavoritesOnly(prevState => !prevState);
+    };
+
+    // Logic to filter markers by favorites or cluster them when zoomed out
+    const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 0.5 - Math.cos(dLat) / 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            (1 - Math.cos(dLon)) / 2;
+        return R * 2 * Math.asin(Math.sqrt(a));
+    }, []);
+
+    const clusterMarkers = useCallback((markers, region) => {
+        const clusteredMarkers = [];
+        const threshold = region.latitudeDelta * 10;
+        const processed = new Set();
+
+        markers.forEach((marker, index) => {
+            if (processed.has(index)) return;
+
+            let cluster = [marker];
+            processed.add(index);
+
+            markers.forEach((otherMarker, otherIndex) => {
+                if (index !== otherIndex && !processed.has(otherIndex)) {
+                    const distance = calculateDistance(
+                        marker.latitude, marker.longitude,
+                        otherMarker.latitude, otherMarker.longitude
+                    );
+                    if (distance < threshold) {
+                        cluster.push(otherMarker);
+                        processed.add(otherIndex);
+                    }
+                }
+            });
+
+            if (cluster.length > 1) {
+                const clusterLat = cluster.reduce((sum, m) => sum + m.latitude, 0) / cluster.length;
+                const clusterLon = cluster.reduce((sum, m) => sum + m.longitude, 0) / cluster.length;
+                clusteredMarkers.push({
+                    latitude: clusterLat,
+                    longitude: clusterLon,
+                    count: cluster.length,
+                    markers: cluster,
+                });
+            } else {
+                clusteredMarkers.push(marker);
+            }
+        });
+
+        return clusteredMarkers;
+    }, [calculateDistance]);
+
+    const displayedMarkers = useMemo(() => {
+        let filteredMarkers = showFavoritesOnly
+            ? originalMarkers.filter(marker => inMemoryStorage.favorites.has(marker.id))
+            : originalMarkers;
+
+        return region.latitudeDelta > 0.1
+            ? clusterMarkers(filteredMarkers, region)
+            : filteredMarkers;
+    }, [showFavoritesOnly, originalMarkers, region, clusterMarkers]);
+
     const toggleChat = () => {
         setIsChatVisible(!isChatVisible);
     };
@@ -99,12 +166,18 @@ const MapScreen = () => {
 
     return (
         <View style={styles.container}>
+                <TouchableOpacity onPress={toggleFavorites} style={styles.heartButton}>
+                    {showFavoritesOnly ? 
+                     <Heart size={20} color="red" fill="red" />
+                     : 
+                     <Heart size={20} color="#1B1464" />
+                     }
+                </TouchableOpacity>
+
             <MapView
                 style={styles.map}
                 initialRegion={region}
-                onRegionChangeComplete={newRegion => {
-                    setRegion(newRegion);
-                }}
+                onRegionChangeComplete={setRegion}
             >
                 {userLocation && (
                     <CustomMarker
@@ -122,28 +195,47 @@ const MapScreen = () => {
                     />
                 )}
 
-                {markers.map((marker, index) => (
-                    <CustomMarker
-                        key={index}
-                        coordinate={{
-                            latitude: marker.latitude,
-                            longitude: marker.longitude,
-                        }}
-                        pinImage={getMarkerIcon(marker.type)}
-                        height={35}
-                        width={35}
-                        onPress={() => handleMarkerPress({
-                            id: marker.id,
-                            title: marker.nom_evenement,
-                            lieu: marker.lieu,
-                            image: marker.photo,
-                        })}
-                    />
+                {displayedMarkers.map((marker, index) => (
+                    marker.count ? (
+                        <CustomMarker
+                            key={`cluster-${index}`}
+                            coordinate={{
+                                latitude: marker.latitude,
+                                longitude: marker.longitude,
+                            }}
+                            pinImage={getMarkerIcon(marker.type)}
+                            height={35}
+                            width={35}
+                            title={`${marker.count} événements`}
+                            onPress={() => handleMarkerPress({
+                                title: `${marker.count} événements`,
+                                description: 'Zoom pour voir plus de détails',
+                                markers: marker.markers,
+                            })}
+                        />
+                    ) : (
+                        <CustomMarker
+                            key={`marker-${marker.id}`}
+                            coordinate={{
+                                latitude: marker.latitude,
+                                longitude: marker.longitude,
+                            }}
+                            pinImage={getMarkerIcon(marker.type)}
+                            height={35}
+                            width={35}
+                            onPress={() => handleMarkerPress({
+                                id: marker.id,
+                                title: marker.nom_evenement,
+                                lieu: marker.lieu,
+                                image: marker.photo,
+                            })}
+                        />
+                    )
                 ))}
             </MapView>
 
             <TouchableOpacity style={styles.chatButton} onPress={toggleChat}>
-                <Text style={styles.chatButtonText}>Chat</Text>
+                <MessageCircle size={20} color="#fff" />
             </TouchableOpacity>
 
             <Modal
@@ -155,7 +247,7 @@ const MapScreen = () => {
                 <View style={styles.chatContainer}>
                     <ChatBot userLocation={userLocation} markers={markers} />
                     <TouchableOpacity style={styles.closeChatButton} onPress={() => setIsChatVisible(false)}>
-                        <Text style={styles.closeChatButtonText}>Close Chat</Text>
+                        <Text style={styles.closeChatButtonText}>Fermer le chat</Text>
                     </TouchableOpacity>
                 </View>
             </Modal>
@@ -212,6 +304,24 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
+    },
+    topContainer: {
+        backgroundColor: 'white',
+        width: '16%',
+        margin: 10,
+        borderRadius: 10,
+        zIndex: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+    },
+    title: {
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    iconButton: {
+        padding: 10,
     },
     map: {
         ...StyleSheet.absoluteFillObject,
@@ -274,6 +384,15 @@ const styles = StyleSheet.create({
         right: 20,
         zIndex: 1,
         backgroundColor: '#1B1464',
+        padding: 10,
+        borderRadius: 25,
+    },
+    heartButton: {
+        position: 'absolute',
+        top: 20,
+        left: 20,
+        zIndex: 1,
+        backgroundColor: '#fff',
         padding: 10,
         borderRadius: 25,
     },
