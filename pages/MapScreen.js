@@ -8,6 +8,7 @@ import LocationImagePin from "../assets/locationPin.png";
 import eatPin from "../assets/eat.png";
 import GenrePin from "../assets/genre.png";
 import {getDataFromAPI} from '../dao/EventDAO';
+import ChatBot from './ChatBot';
 
 const MapScreen = () => {
     const [region, setRegion] = useState({
@@ -21,6 +22,7 @@ const MapScreen = () => {
     const [selectedMarker, setSelectedMarker] = useState(null);
     const [markers, setMarkers] = useState([]);
     const [originalMarkers, setOriginalMarkers] = useState([]); // Pour stocker les marqueurs d'origine
+    const [isChatVisible, setIsChatVisible] = useState(false);
 
     useEffect(() => {
         const getLocation = async () => {
@@ -125,6 +127,10 @@ const MapScreen = () => {
         setSelectedMarker(null);
     };
 
+    const toggleChat = () => {
+        setIsChatVisible(!isChatVisible);
+    };
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -197,6 +203,24 @@ const MapScreen = () => {
                     )
                 ))}
             </MapView>
+
+            <TouchableOpacity style={styles.chatButton} onPress={toggleChat}>
+                <Text style={styles.chatButtonText}>Chat</Text>
+            </TouchableOpacity>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={isChatVisible}
+                onRequestClose={() => setIsChatVisible(false)}
+            >
+                <View style={styles.chatContainer}>
+                    <ChatBot userLocation={userLocation} markers={markers} />
+                    <TouchableOpacity style={styles.closeChatButton} onPress={() => setIsChatVisible(false)}>
+                        <Text style={styles.closeChatButtonText}>Close Chat</Text>
+                    </TouchableOpacity>
+                </View>
+            </Modal>
 
             {selectedMarker && (
                 <Modal
@@ -280,6 +304,33 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
     closeButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    chatButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        zIndex: 1,
+        backgroundColor: '#1B1464',
+        padding: 10,
+        borderRadius: 25,
+    },
+    chatButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    chatContainer: {
+        flex: 1,
+        backgroundColor: 'white',
+        marginTop: 50,
+    },
+    closeChatButton: {
+        backgroundColor: '#1B1464',
+        padding: 10,
+        alignItems: 'center',
+    },
+    closeChatButtonText: {
         color: 'white',
         fontSize: 16,
     },
