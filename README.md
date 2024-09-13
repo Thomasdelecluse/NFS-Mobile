@@ -20,16 +20,18 @@ Pour lancer l'application sur votre machine locale, suivez ces étapes :
 git clone https://github.com/votre-utilisateur/festival-app.git
 cd festival-app
 ```
-🛠️ Technologies utilisées
-React Native : Pour créer une application mobile performante et multi-plateformes.
-Expo : Un outil puissant pour simplifier le développement mobile avec React Native.
-react-native-maps : Intégration d'une carte interactive pour localiser les différents événements et services du festival.
-Expo Location : Pour obtenir la position GPS de l'utilisateur en temps réel.
-Expo Notifications : Pour gérer les notifications locales et alerter les utilisateurs sur les événements.
-📋 Utilisation
+## 🛠️ Technologies utilisées
+
+- **React Native : Pour créer une application mobile performante et multi-plateformes.
+- **Expo : Un outil puissant pour simplifier le développement mobile avec React Native.
+- **react-native-maps : Intégration d'une carte interactive pour localiser les différents événements et services du festival.
+- **Expo Location : Pour obtenir la position GPS de l'utilisateur en temps réel.
+- **Expo Notifications : Pour gérer les notifications locales et alerter les utilisateurs sur les événements.
+  
+## 📋 Utilisation
 Une fois l'application lancée, vous pourrez :
 
-Explorer la carte interactive pour découvrir les différents lieux du festival.
-Cliquer sur les marqueurs pour afficher des détails sur les événements ou les stands.
-Recevoir des notifications sur les événements programmés.
-Visualiser votre position en temps réel pour mieux vous repérer.
+- **Explorer la carte interactive pour découvrir les différents lieux du festival.
+- **Cliquer sur les marqueurs pour afficher des détails sur les événements ou les stands.
+- **Recevoir des notifications sur les événements programmés.
+- **Visualiser votre position en temps réel pour mieux vous repérer.
